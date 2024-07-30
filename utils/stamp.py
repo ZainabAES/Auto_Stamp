@@ -1,9 +1,15 @@
+"""
+Module Docstring
+"""
+from typing import Union
 import cv2
 import numpy as np
-from typing import Union
 from PIL import Image
 
 def get_roi(doc, stamp):
+    """
+    Function Docstring
+    """
     h, w, _ = doc.shape
 
     starting_h = h - stamp.shape[0]
@@ -14,10 +20,13 @@ def get_roi(doc, stamp):
     ending_w = starting_w + stamp.shape[1]
 
     roi = doc[starting_h: ending_h, starting_w:ending_w, :]
-    return roi, starting_h, ending_h, starting_w, ending_w 
+    return roi, starting_h, ending_h, starting_w, ending_w
 
 
 def get_whitespace_ratio(window):
+    """
+    Function Docstring
+    """
     counter = 0
     img = Image.fromarray(window.astype('uint8'), 'RGB')
     img = img.convert("RGBA")
@@ -29,14 +38,20 @@ def get_whitespace_ratio(window):
     return counter
 
 def get_max_idx(counter_dict):
+    """
+    Function Docstring
+    """
     lst = [window["counter"] for window in counter_dict.values()]
     idx = lst.index(max(lst))
     return idx
-    
+
 def whitespace_area(doc, stamp):
+    """
+    Function Docstring
+    """
     stamp_h, stamp_w = stamp.shape[:2]
     doc_h, doc_w = doc.shape[:2]
-    
+
     white_ratio_dict: dict[int, dict[str, Union[tuple, int]]] = {}
     for starting_heigh in range(0, doc_h, stamp_h):
         for starting_width in range(0, doc_w, stamp_w):
@@ -49,9 +64,7 @@ def whitespace_area(doc, stamp):
                 "coord": (starting_heigh, ending_heigh, starting_width, ending_width),
                 "counter": get_whitespace_ratio(roi)
             }
-    print(f"ALL DICT: {white_ratio_dict}")
     max_idx = get_max_idx(white_ratio_dict)
-    print(f"MAX IDX: {max_idx}")
     coord = white_ratio_dict[max_idx]["coord"]
     starting_heigh, ending_heigh, starting_width, ending_width = coord
     roi = doc[starting_heigh: ending_heigh, starting_width:ending_width, :]
@@ -60,17 +73,16 @@ def whitespace_area(doc, stamp):
 
 
 def add_stamp(doc, stamp, resize_show_ratio=0.75, imshow = False, imwrite = False):
+    """
+    Function Docstring
+    """
     #stamp = color_adjustment(stamp)
     stamp = Image.fromarray(stamp.astype('uint8'), 'RGB')
     stamp = background_removal(stamp)
-    stamp = stamp.convert('RGB') #i think this should be removed felt its unnecessry
+    stamp = stamp.convert('RGB')
     stamp = np.array(stamp)
-    # stamp = cv2.imread(stamp)
-    # cv2.imshow(f"STAMP", stamp)
-    # if cv2.waitKey(0) & 0xFF == ord('q'):
-    #     cv2.destroyAllWindows()
 
-    roi, starting_h, ending_h, starting_w, ending_w = whitespace_area(doc, stamp)
+    _, starting_h, ending_h, starting_w, ending_w = whitespace_area(doc, stamp)
     doc[starting_h: ending_h, starting_w:ending_w, :] = stamp
     if imshow:
         show_doc = doc.copy()
@@ -85,6 +97,9 @@ def add_stamp(doc, stamp, resize_show_ratio=0.75, imshow = False, imwrite = Fals
     return doc
 
 def color_adjustment(image):
+    """
+    Function Docstring
+    """
     stamp_img=image
     if stamp_img.shape[2] == 4:
         stamp_img = cv2.cvtColor(stamp_img, cv2.COLOR_RGBA2BGR)
@@ -93,16 +108,19 @@ def color_adjustment(image):
     return stamp_img
 
 def background_removal(stamp):
+    """
+    Function Docstring
+    """
     stamp = stamp.convert("RGBA")
     pixels = stamp.getdata()
-    newData = []
- 
+    new_data = []
+
     for item in pixels:
         if item[0] == 255 and item[1] == 255 and item[2] == 255:
-            newData.append((255, 255, 255, 0))
+            new_data.append((255, 255, 255, 0))
         else:
-            newData.append(item)
+            new_data.append(item)
 
-    stamp.putdata(newData)
+    stamp.putdata(new_data)
     stamp.save("./New.png", "PNG")
     return stamp

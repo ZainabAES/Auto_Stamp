@@ -96,6 +96,44 @@ def add_stamp(doc, stamp, resize_show_ratio=0.75, imshow = False, imwrite = Fals
 
     return doc
 
+from PIL import Image
+import numpy as np
+
+def add_stamp_Pillow(doc, stamp, resize_show_ratio=0.75, imshow=False, imwrite=False):
+    """
+    Function Docstring
+    """
+    # Convert numpy array to PIL Image
+    stamp = Image.fromarray(stamp.astype('uint8'), 'RGB')
+    
+    # Perform background removal and color adjustment if necessary
+    stamp = background_removal(stamp)
+    stamp = stamp.convert('RGB')
+    
+    # Convert back to numpy array for manipulation
+    stamp = np.array(stamp)
+    
+    # Find the whitespace area and place the stamp
+    _, starting_h, ending_h, starting_w, ending_w = whitespace_area(doc, stamp)
+    doc[starting_h:ending_h, starting_w:ending_w, :] = stamp
+    
+    if imshow:
+        # Convert the document to PIL Image
+        show_doc = Image.fromarray(doc.astype('uint8'), 'RGB')
+        
+        # Resize the document for display
+        width, height = show_doc.size
+        show_doc = show_doc.resize((int(width * resize_show_ratio), int(height * resize_show_ratio)), Image.ANTIALIAS)
+        
+        # Show the document
+        show_doc.show()
+    
+    if imwrite:
+        # Save the document if needed (not implemented)
+        pass
+    
+    return doc
+
 def color_adjustment(image):
     """
     Function Docstring
@@ -106,6 +144,19 @@ def color_adjustment(image):
     else:
         stamp_img = cv2.cvtColor(stamp_img, cv2.COLOR_RGB2BGR)
     return stamp_img
+
+from PIL import Image
+
+def color_adjustment_pillow(image):
+    """
+    Adjusts the color of the image if needed.
+    """
+    stamp_img = Image.fromarray(image)
+
+    if stamp_img.mode == 'RGBA':
+        stamp_img = stamp_img.convert('RGB')
+    
+    return np.array(stamp_img)
 
 def background_removal(stamp):
     """

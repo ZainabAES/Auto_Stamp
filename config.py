@@ -2,6 +2,5 @@
 Auto Stamp Project Configs.
 """
 
-
-poppler_path = r"C:\Users\alzop\Downloads\Release-24.02.0-0\poppler-24.02.0\Library\bin"
+poppler_path = r"poppler\Library\bin"
 stamp_size = (409, 214)
